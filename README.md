@@ -7,7 +7,7 @@
 - 사용자 회원가입 및 로그인 
 - 게시글 작성 / 수정 / 삭제 / 조회
 - 댓글 작성 / 삭제 / 조회
-- 좋아요 / 취소 / 조회
+- 좋아요 토글
   
 ## 프로젝트 구조 (Architecture Overview)
 
@@ -160,3 +160,48 @@ sequenceDiagram
 | Exception           | Controller | JSON 응답 변환 |
 
 ---
+
+## 주요 API 목록 (Endpoints Overview)
+
+| 구분            | Method | Endpoint                   | Status    | 설명                        |
+| ------------- | ------ | -------------------------- | --------- | ------------------------- |
+| **회원가입**      | POST   | `/users`                   | 201       | 새로운 사용자 등록                |
+| **로그인**       | POST   | `/users/auth`              | 200       | 사용자 로그인 및 Access Token 발급 |
+| **이메일 중복 확인** | GET    | `/users/check-email`       | 200 / 409 | 사용 가능한 이메일 여부 확인          |
+| **게시글 작성**    | POST   | `/posts`                   | 201       | 게시글 등록                    |
+| **게시글 수정**    | PATCH  | `/posts/{postId}`          | 200       | 게시글 수정                    |
+| **게시글 삭제**    | DELETE | `/posts/{postId}`          | 204       | 게시글 삭제                    |
+| **게시글 목록 조회** | GET    | `/posts`                   | 200       | 페이지네이션 목록 조회              |
+| **게시글 상세 조회** | GET    | `/posts/{postId}`          | 200       | 특정 게시글 상세 내용 조회           |
+| **댓글 작성**     | POST   | `/posts/{postId}/comments` | 201       | 댓글 등록                     |
+| **댓글 삭제**     | DELETE | `/comments/{commentId}`    | 204       | 댓글 삭제                     |
+| **좋아요 토글**    | POST   | `/posts/{postId}/likes`    | 200       | 좋아요/취소 처리                 |
+
+---
+
+## 에러 처리 구조 (Error Handling)
+
+| 계층                  | 클래스                      | 역할                          |
+| ------------------- | ------------------------ | --------------------------- |
+| **Exception Layer** | `BusinessException`      | 서비스 로직 중 비즈니스 예외 발생 시 throw |
+| **Exception Layer** | `ErrorCode`              | HTTP 상태 코드, 에러 코드, 메시지 정의   |
+| **Global Handler**  | `GlobalExceptionHandler` | 모든 예외를 잡아 표준화된 JSON 응답으로 변환 |
+
+** 에러 응답 예시**
+
+```json
+{
+  "message": "invalid_request",
+  "data": null,
+  "error": {
+    "code": "POST-TITLE-LEN",
+    "detail": "게시글 제목은 1~30자 사이여야 합니다."
+  }
+}
+```
+
+> `Service` 혹은 `Validator` 계층에서 예외가 발생하면,
+> `BusinessException`이 던져지고 `GlobalExceptionHandler`가 이를 캐치하여
+> 클라이언트에게 일관된 형식으로 응답합니다.
+
+
