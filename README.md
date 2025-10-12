@@ -187,7 +187,7 @@ sequenceDiagram
 | **Exception Layer** | `ErrorCode`              | HTTP 상태 코드, 에러 코드, 메시지 정의   |
 | **Global Handler**  | `GlobalExceptionHandler` | 모든 예외를 잡아 표준화된 JSON 응답으로 변환 |
 
-** 에러 응답 예시**
+에러 응답 예시
 
 ```json
 {
