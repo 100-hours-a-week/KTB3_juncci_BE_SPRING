@@ -123,7 +123,7 @@
 
 ---
 
-## 🔁 요청-응답 흐름 요약
+## 요청-응답 흐름 요약
 
 ```mermaid
 sequenceDiagram
