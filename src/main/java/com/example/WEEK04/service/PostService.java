@@ -9,7 +9,6 @@ import com.example.WEEK04.repository.DummyLikeRepository;
 import com.example.WEEK04.repository.DummyPostRepository;
 import com.example.WEEK04.validation.PostValidator;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -18,25 +17,28 @@ public class PostService {
     private final DummyPostRepository postRepo;
     private final DummyLikeRepository likeRepo;
     private final PostValidator validator;
+    private final AuthService authService;
 
-    public PostService(DummyPostRepository postRepo, DummyLikeRepository likeRepo, PostValidator validator) {
+    public PostService(DummyPostRepository postRepo, DummyLikeRepository likeRepo,
+                       PostValidator validator, AuthService authService) {
         this.postRepo = postRepo;
         this.likeRepo = likeRepo;
         this.validator = validator;
+        this.authService = authService;
     }
 
     // 게시글 작성
     public Post create(String authorization, PostCreateRequest req) {
-        Long userId = extractUser(authorization);
-
+        Long userId = authService.extractUserId(authorization);
         validator.validateCreate(req);
+
         Post newPost = new Post(null, userId, req.getTitle(), req.getContent(), req.getImages());
         return postRepo.save(newPost);
     }
 
     // 게시글 수정
     public Post update(String authorization, Long postId, PostUpdateRequest req) {
-        Long userId = extractUser(authorization);
+        Long userId = authService.extractUserId(authorization);
         validator.validateUpdate(req);
 
         Post existing = postRepo.findById(postId)
@@ -52,7 +54,7 @@ public class PostService {
 
     // 게시글 삭제
     public void delete(String authorization, Long postId) {
-        Long userId = extractUser(authorization);
+        Long userId = authService.extractUserId(authorization);
 
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -72,10 +74,7 @@ public class PostService {
         }
 
         List<Post> posts = postRepo.findAll(page, size, sort);
-
-        // 각 게시글에 좋아요 개수 실시간 반영
         posts.forEach(p -> p.setLikeCount(likeRepo.getLikeCount(p.getId())));
-
         return posts;
     }
 
@@ -84,7 +83,6 @@ public class PostService {
         Post post = postRepo.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        // 좋아요 수 동기화
         post.setLikeCount(likeRepo.getLikeCount(id));
         return post;
     }
@@ -93,30 +91,21 @@ public class PostService {
         return postRepo.count();
     }
 
-    // 내부 공통 토큰 파싱 로직
-    private Long extractUser(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ACCESS-TOKEN-")) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
-        try {
-            return Long.parseLong(authorization.replace("Bearer ACCESS-TOKEN-", ""));
-        } catch (NumberFormatException e) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
-    }
-
+    // 내부 정적 클래스 → 독립 서비스로 분리 가능 (현재는 SRP 준수 형태로 유지)
     @Service
     public static class LikeService {
 
         private final DummyLikeRepository repo;
+        private final AuthService authService;
 
-        public LikeService(DummyLikeRepository repo) {
+        public LikeService(DummyLikeRepository repo, AuthService authService) {
             this.repo = repo;
+            this.authService = authService;
         }
 
         // 좋아요 추가
         public void like(String authorization, Long postId) {
-            Long userId = extractUser(authorization);
+            Long userId = authService.extractUserId(authorization);
             if (repo.hasLiked(postId, userId)) {
                 throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
             }
@@ -125,7 +114,7 @@ public class PostService {
 
         // 좋아요 취소
         public void unlike(String authorization, Long postId) {
-            Long userId = extractUser(authorization);
+            Long userId = authService.extractUserId(authorization);
             if (!repo.hasLiked(postId, userId)) {
                 throw new BusinessException(ErrorCode.LIKE_NOT_FOUND);
             }
@@ -135,17 +124,6 @@ public class PostService {
         // 좋아요 개수
         public int getLikeCount(Long postId) {
             return repo.getLikeCount(postId);
-        }
-
-        private Long extractUser(String authorization) {
-            if (authorization == null || !authorization.startsWith("Bearer ACCESS-TOKEN-")) {
-                throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-            }
-            try {
-                return Long.parseLong(authorization.replace("Bearer ACCESS-TOKEN-", ""));
-            } catch (NumberFormatException e) {
-                throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-            }
         }
     }
 }

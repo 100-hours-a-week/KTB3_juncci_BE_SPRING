@@ -12,38 +12,28 @@ import java.util.List;
 public class CommentService {
 
     private final DummyCommentRepository repo;
+    private final AuthService authService;
 
-    public CommentService(DummyCommentRepository repo) {
+    public CommentService(DummyCommentRepository repo, AuthService authService) {
         this.repo = repo;
+        this.authService = authService;
     }
 
     // 댓글 등록
     public Comment create(String authorization, Long postId, String content) {
-        if (authorization == null || !authorization.startsWith("Bearer ACCESS-TOKEN-")) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
+        Long authorId = authService.extractUserId(authorization);
 
         if (content == null || content.isBlank()) {
             throw new BusinessException(ErrorCode.COMMENT_FIELD_MISSING);
         }
 
-        Long authorId = Long.parseLong(authorization.replace("Bearer ACCESS-TOKEN-", ""));
         Comment comment = new Comment(null, postId, authorId, content);
         return repo.save(comment);
     }
 
     // 댓글 삭제
     public void delete(String authorization, Long postId, Long commentId) {
-        if (authorization == null || !authorization.startsWith("Bearer ACCESS-TOKEN-")) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
-
-        Long userId;
-        try {
-            userId = Long.parseLong(authorization.replace("Bearer ACCESS-TOKEN-", ""));
-        } catch (NumberFormatException e) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
-        }
+        Long userId = authService.extractUserId(authorization);
 
         Comment comment = repo.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
