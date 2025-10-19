@@ -44,7 +44,7 @@ public class Post {
         this.likeCount = likeCount;
     }
 
-    // 댓글 개수 setter도 함께 관리하고 싶다면
+    //
     public void setCommentCount(int commentCount) {
         this.commentCount = commentCount;
     }

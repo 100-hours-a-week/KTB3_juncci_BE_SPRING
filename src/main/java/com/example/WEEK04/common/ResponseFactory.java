@@ -4,10 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-/**
- * ✅ ResponseFactory
- * 응답 생성을 단일화하여 SRP/OCP를 강화하는 클래스
- */
 @Component
 public class ResponseFactory {
 
@@ -30,5 +26,19 @@ public class ResponseFactory {
                 .body(new Response<>(code, message, null));
     }
 
-    public record Response<T>(String code, String message, T data) {}
+    public static class Response<T> {
+        private final String code;
+        private final String message;
+        private final T data;
+
+        public Response(String code, String message, T data) {
+            this.code = code;
+            this.message = message;
+            this.data = data;
+        }
+
+        public String getCode() { return code; }
+        public String getMessage() { return message; }
+        public T getData() { return data; }
+    }
 }
