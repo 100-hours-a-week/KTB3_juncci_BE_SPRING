@@ -22,7 +22,11 @@
 Spring MVC 기반 **5계층 아키텍처**를 따르며,
 각 계층은 **단일 책임 원칙(SRP)** 과 **의존성 역전 원칙(DIP)** 을 준수하도록 리팩토링되었습니다.
 
+(WEEK 04)
 <img width="4710" height="2062" alt="WEEK04" src="https://github.com/user-attachments/assets/e9230aeb-3a7e-4a2c-8db2-05ae5f94ccc9" />
+
+(WEEK 05)
+<img width="6549" height="1880" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-10-19-145614" src="https://github.com/user-attachments/assets/5ab57361-2c16-44ac-8736-c2850075deaf" />
 
 ---
 
