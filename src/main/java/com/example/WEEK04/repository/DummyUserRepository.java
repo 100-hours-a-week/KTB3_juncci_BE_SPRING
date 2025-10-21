@@ -3,10 +3,11 @@ package com.example.WEEK04.repository;
 import com.example.WEEK04.model.entity.User;
 import org.springframework.stereotype.Repository;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 public class DummyUserRepository implements UserRepository {
-    private final Map<String, User> usersByEmail = new HashMap<>();
+    private final Map<String, User> usersByEmail = new ConcurrentHashMap<>();
     private long idSeq = 1L;
 
     @Override

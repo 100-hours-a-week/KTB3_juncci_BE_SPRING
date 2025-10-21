@@ -9,7 +9,6 @@ public class CommentResponse {
     private final String content;
     private final String created_at;
 
-    // 생성자 (Entity → DTO 변환)
     public CommentResponse(Comment comment) {
         this.comment_id = comment.getId();
         this.post_id = comment.getPostId();
@@ -17,7 +16,6 @@ public class CommentResponse {
         this.created_at = comment.getCreatedAt();
     }
 
-    // Getter
     public Long getComment_id() { return comment_id; }
     public Long getPost_id() { return post_id; }
     public String getContent() { return content; }

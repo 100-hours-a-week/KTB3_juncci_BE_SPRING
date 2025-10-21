@@ -2,12 +2,13 @@ package com.example.WEEK04.repository;
 
 import org.springframework.stereotype.Repository;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 public class DummyLikeRepository {
 
     // postId → set of userIds
-    private final Map<Long, Set<Long>> likes = new HashMap<>();
+    private final Map<Long, Set<Long>> likes = new ConcurrentHashMap<>();
 
     public boolean hasLiked(Long postId, Long userId) {
         return likes.getOrDefault(postId, Collections.emptySet()).contains(userId);

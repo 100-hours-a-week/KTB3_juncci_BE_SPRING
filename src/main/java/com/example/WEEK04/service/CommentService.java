@@ -22,11 +22,6 @@ public class CommentService {
     // 댓글 등록
     public Comment create(String authorization, Long postId, String content) {
         Long authorId = authService.extractUserId(authorization);
-
-        if (content == null || content.isBlank()) {
-            throw new BusinessException(ErrorCode.COMMENT_FIELD_MISSING);
-        }
-
         Comment comment = new Comment(null, postId, authorId, content);
         return repo.save(comment);
     }

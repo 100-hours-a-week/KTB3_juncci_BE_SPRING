@@ -1,17 +1,17 @@
-package com.example.WEEK04.model.dto.response;
+package com.example.WEEK04.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "공통 에러 응답")
 public class ErrorResponse {
 
-    @Schema(description = "에러 코드", example = "SYS-UNEXPECTED")
+    @Schema(description = "에러 코드", example = "USR-EMAIL-INVALID")
     private final String code;
 
-    @Schema(description = "에러 메시지", example = "예상치 못한 오류가 발생했습니다.")
+    @Schema(description = "에러 메시지", example = "이메일 형식이 올바르지 않습니다.")
     private final String message;
 
-    @Schema(description = "추가 상세정보", example = "NullPointerException at line 32")
+    @Schema(description = "상세 정보", example = "MethodArgumentNotValidException")
     private final String detail;
 
     public ErrorResponse(String code, String message, String detail) {

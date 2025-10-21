@@ -4,12 +4,13 @@ import com.example.WEEK04.model.entity.Comment;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
 public class DummyCommentRepository {
 
-    private final Map<Long, Comment> comments = new HashMap<>();
+    private final Map<Long, Comment> comments = new ConcurrentHashMap<>();
     private long sequence = 0L;
 
     public Comment save(Comment comment) {

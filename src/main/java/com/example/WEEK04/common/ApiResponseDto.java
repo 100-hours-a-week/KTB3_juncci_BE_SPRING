@@ -3,7 +3,7 @@ package com.example.WEEK04.common;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "공통 API 응답 포맷")
-public class ApiResponse<T> {
+public class ApiResponseDto<T> {
     @Schema(description = "응답 코드", example = "ok")
     private String code;
 
@@ -13,7 +13,7 @@ public class ApiResponse<T> {
     @Schema(description = "데이터 본문")
     private T data;
 
-    public ApiResponse(String code, String message, T data) {
+    public ApiResponseDto(String code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
