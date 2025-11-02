@@ -19,11 +19,17 @@ import java.util.List;
 @BatchSize(size = 50)
 public class Post {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
     private String images;
     private int viewCount;
     private int likeCount;
@@ -38,7 +44,7 @@ public class Post {
 
     /** ===== 연관관계 ===== */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false) // 작성자 정보도 필수
     private User user;
 
     @JsonIgnore
