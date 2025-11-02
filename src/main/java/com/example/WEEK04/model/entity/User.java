@@ -17,15 +17,20 @@ import java.util.List;
 @BatchSize(size = 50)
 public class User {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
     private String nickname;
     private String profileImage;
 
-    /** 회원 상태 추가 */
+    /** 회원 상태 */
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.ACTIVE;
 
@@ -78,28 +83,22 @@ public class User {
     }
 
     /** ===== 비즈니스 로직 ===== */
-
-    // 닉네임 수정
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
 
-    // 프로필 이미지 수정
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
 
-    // 비밀번호 변경
     public void setPassword(String password) {
         this.password = password;
     }
 
-    // 상태 변경
     public void setStatus(UserStatus status) {
         this.status = status;
     }
 
-    // 탈퇴 처리
     public void withdraw() {
         this.status = UserStatus.WITHDRAWN;
     }
