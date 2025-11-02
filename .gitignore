@@ -1,49 +1,58 @@
-HELP.md
-.gradle
+### Build ###
+.gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+out/
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+!**/src/main/**/out/
+!**/src/test/**/out/
+!gradle/wrapper/gradle-wrapper.jar
 
-### IntelliJ IDEA ###
-.idea
+### IDEs ###
+.idea/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+.factorypath
+.apt_generated
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+### OS ###
+.DS_Store
+Thumbs.db
 
 ### VS Code ###
 .vscode/
 
-# Gradle & IntelliJ
-.gradle/
-.idea/
-build/
+### Logs ###
+*.log
+logs/
+log/
 
-# OS files
-.DS_Store
+### Spring Boot ###
+application*.yml
+application*.yaml
+application*.properties
 
-# 이미 존재하는 이전 폴더 제외
+# 임시 / 캐시 폴더
+target/
+.tmp/
+.env
+
+### Gradle Wrapper ###
+gradlew.bat
+gradlew
+
+### Tests ###
+test-output/
+!**/src/main/**/test-output/
+!**/src/test/**/test-output/
+
+### Others ###
+
 WEEK01/
 WEEK02/
+HELP.md

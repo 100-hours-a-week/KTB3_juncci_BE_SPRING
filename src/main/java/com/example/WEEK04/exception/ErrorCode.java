@@ -12,6 +12,10 @@ public enum ErrorCode {
     PROFILE_IMAGE_INVALID("USR-IMG-INVALID", "프로필 이미지는 https URL 이어야 합니다.", HttpStatus.UNPROCESSABLE_ENTITY),
     FIELD_MISSING("USR-FIELD-MISSING", "이메일과 비밀번호를 모두 입력해주세요.", HttpStatus.BAD_REQUEST),
     LOGIN_FAIL("USR-LOGIN-FAIL", "아이디 또는 비밀번호를 확인해주세요.", HttpStatus.UNAUTHORIZED),
+    USER_WITHDRAWN("USR-WITHDRAWN", "탈퇴한 회원입니다.", HttpStatus.FORBIDDEN),
+    USER_NOT_FOUND("USR-NOT-FOUND", "해당 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    USER_INACTIVE("USR-INACTIVE", "휴면 상태의 계정입니다.", HttpStatus.FORBIDDEN),
+    USER_STATUS_INVALID("USR-STATUS-INVALID", "잘못된 회원 상태입니다.", HttpStatus.BAD_REQUEST),
 
     // ─── Auth ───────────────────────────────
     AUTH_TOKEN_INVALID("AUTH-TOKEN-INVALID", "유효하지 않거나 만료된 토큰입니다.", HttpStatus.UNAUTHORIZED),

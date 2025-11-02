@@ -1,51 +1,98 @@
 package com.example.WEEK04.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Entity
+@NoArgsConstructor
+@Table(name = "posts")
+@BatchSize(size = 50)
 public class Post {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long authorId;
+
     private String title;
     private String content;
-    private List<String> images;
-    private String createdAt;
-    private int commentCount;
-    private int likeCount;
+    private String images;
     private int viewCount;
+    private int likeCount;
+    private int commentCount;
 
-    // 기존 생성자
-    public Post(Long id, Long authorId, String title, String content, List<String> images) {
-        this.id = id;
-        this.authorId = authorId;
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    /** ===== 연관관계 ===== */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes = new ArrayList<>();
+
+    /** ===== 생성자 ===== */
+    public Post(User user, String title, String content, String images) {
+        this.user = user;
         this.title = title;
         this.content = content;
         this.images = images;
-        this.createdAt = java.time.LocalDateTime.now().toString();
-        this.commentCount = 0;
-        this.likeCount = 0;
-        this.viewCount = 0;
     }
 
-    // getter/setter
-    public Long getId() { return id; }
-    public Long getAuthorId() { return authorId; }
-    public String getTitle() { return title; }
-    public String getContent() { return content; }
-    public List<String> getImages() { return images; }
-    public String getCreatedAt() { return createdAt; }
-    public int getCommentCount() { return commentCount; }
-    public int getLikeCount() { return likeCount; }
-    public int getViewCount() { return viewCount; }
+    /** ===== 편의 메서드 ===== */
+    public void setUser(User user) { this.user = user; }
 
-    public void setId(Long id) { this.id = id; }
-
-    // 좋아요 개수 setter 추가
-    public void setLikeCount(int likeCount) {
-        this.likeCount = likeCount;
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        comment.setPost(this);
+        incrementCommentCount();
     }
 
-    //
-    public void setCommentCount(int commentCount) {
-        this.commentCount = commentCount;
+    public void addLike(Like like) {
+        likes.add(like);
+        like.setPost(this);
+        incrementLikeCount();
     }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setPost(null);
+        decrementCommentCount();
+    }
+
+    public void removeLike(Like like) {
+        likes.remove(like);
+        like.setPost(null);
+        decrementLikeCount();
+    }
+
+    /** ===== Count 관리 ===== */
+    public void incrementLikeCount() { this.likeCount++; }
+    public void decrementLikeCount() { if (likeCount > 0) likeCount--; }
+    public void incrementCommentCount() { this.commentCount++; }
+    public void decrementCommentCount() { if (commentCount > 0) commentCount--; }
+    public void incrementViewCount() { this.viewCount++; }
+
+    /** ===== 업데이트 ===== */
+    public void updateTitle(String title) { this.title = title; }
+    public void updateContent(String content) { this.content = content; }
+    public void updateImages(String images) { this.images = images; }
 }

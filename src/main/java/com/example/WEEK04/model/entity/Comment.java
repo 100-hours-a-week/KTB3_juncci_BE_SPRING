@@ -1,27 +1,43 @@
 package com.example.WEEK04.model.entity;
 
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
+@Getter
+@Entity
+@NoArgsConstructor
+@Table(name = "comments")
+@BatchSize(size = 50)
 public class Comment {
-    private Long id;
-    private Long postId;
-    private Long authorId;
-    private String content;
-    private String createdAt;
 
-    public Comment(Long id, Long postId, Long authorId, String content) {
-        this.id = id;
-        this.postId = postId;
-        this.authorId = authorId;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String content;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
+
+    public Comment(Post post, User author, String content) {
+        this.post = post;
+        this.author = author;
         this.content = content;
-        this.createdAt = LocalDateTime.now().toString();
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getPostId() { return postId; }
-    public Long getAuthorId() { return authorId; }
-    public String getContent() { return content; }
-    public String getCreatedAt() { return createdAt; }
+    public void setContent(String content) { this.content = content; }
+    public void setPost(Post post) { this.post = post; }
+    public void setAuthor(User author) { this.author = author; }
 }
