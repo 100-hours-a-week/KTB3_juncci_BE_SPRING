@@ -34,6 +34,8 @@ public record PostListResponse(String message, Data data, Object error) {
         private final int comment_count;
         private final int like_count;
         private final int view_count;
+        private final Long author_id;
+        private final String author_nickname;
 
         public PostSummary(Post p, int likeCount, int viewCount) {
             this.post_id = p.getId();
@@ -42,6 +44,8 @@ public record PostListResponse(String message, Data data, Object error) {
             this.comment_count = p.getCommentCount(); // 사용 안 하면 0 또는 제거 가능
             this.like_count = likeCount;
             this.view_count = viewCount;
+            this.author_id = p.getUser().getId();
+            this.author_nickname = p.getUser().getNickname();
         }
 
         public Long getPost_id() { return post_id; }
@@ -50,5 +54,7 @@ public record PostListResponse(String message, Data data, Object error) {
         public int getComment_count() { return comment_count; }
         public int getLike_count() { return like_count; }
         public int getView_count() { return view_count; }
+        public Long getAuthor_id() {return author_id;}
+        public String getAuthor_nickname() {return author_nickname;}
     }
 }

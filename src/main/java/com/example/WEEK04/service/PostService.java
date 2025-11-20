@@ -103,7 +103,18 @@ public class PostService {
 
     /** 게시글 상세 조회 */
     @Transactional
-    public PostDetailResponse getPostById(Long id) {
+    public PostDetailResponse getPostById(Long id, String authorization) {
+
+        Long userId = null;
+        boolean isLiked = false;
+
+        if (authorization != null && authorization.startsWith("Bearer ACCESS-TOKEN-")) {
+            try {
+                userId = authService.extractUserId(authorization);
+                isLiked = likeRepo.existsByPostIdAndUserId(id, userId);
+            } catch (Exception ignored) {}
+        }
+
         Post post = postRepo.findPostWithDetails(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
@@ -112,10 +123,11 @@ public class PostService {
 
         return new PostDetailResponse(
                 "ok",
-                new PostDetailResponse.Data(post, likeCount, post.getViewCount()),
+                new PostDetailResponse.Data(post, likeCount, post.getViewCount(), isLiked),
                 null
         );
     }
+
 
     /** 게시글 삭제 추가 */
     public void delete(String authorization, Long postId) {

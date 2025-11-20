@@ -74,9 +74,10 @@ public class PostController {
     @Operation(summary = "게시글 단건 조회 API", description = "게시글 ID로 상세 조회합니다.")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponseDto<PostDetailResponse>> getPostById(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId
     ) {
-        PostDetailResponse response = postService.getPostById(postId);
+        PostDetailResponse response = postService.getPostById(postId, authorization);
         return responseFactory.ok(response);
     }
 

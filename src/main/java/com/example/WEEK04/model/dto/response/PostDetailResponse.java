@@ -18,21 +18,25 @@ public record PostDetailResponse(String message, Data data, Object error) {
         private final int comment_count;
         private final int like_count;
         private final int view_count;
+        private final boolean is_liked;
+        private final Long author_id;
+        private final String author_nickname;
 
-        public Data(Post p, int likeCount, int viewCount) {
+
+        public Data(Post p, int likeCount, int viewCount, boolean isLiked) {
             this.post_id = p.getId();
             this.title = p.getTitle();
             this.content = p.getContent();
-
-
             this.images = (p.getImages() != null && !p.getImages().isBlank())
                     ? Arrays.asList(p.getImages().split(","))
                     : List.of();
-
             this.created_at = p.getCreatedAt();
             this.comment_count = p.getCommentCount();
             this.like_count = likeCount;
             this.view_count = viewCount;
+            this.is_liked = isLiked;
+            this.author_id = p.getUser().getId();
+            this.author_nickname = p.getUser().getNickname();
         }
 
         public Long getPost_id() {
@@ -65,6 +69,14 @@ public record PostDetailResponse(String message, Data data, Object error) {
 
         public int getView_count() {
             return view_count;
+        }
+        public boolean isIs_liked() { return is_liked; }
+        public Long getAuthor_id() {
+            return author_id;
+        }
+
+        public String getAuthor_nickname() {
+            return author_nickname;
         }
     }
 }
