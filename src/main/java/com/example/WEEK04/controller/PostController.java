@@ -25,41 +25,36 @@ public class PostController {
     }
 
     /** 게시글 작성 */
-    @Operation(summary = "게시글 작성 API", description = "새로운 게시글을 작성합니다.")
+    @Operation(summary = "게시글 작성 API")
     @PostMapping
     public ResponseEntity<ApiResponseDto<IdData>> create(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody PostCreateRequest req
     ) {
-        Long postId = postService.create(authorization, req);
+        Long postId = postService.create(req);
         return responseFactory.created(new IdData(postId));
     }
 
     /** 게시글 수정 */
-    @Operation(summary = "게시글 수정 API", description = "기존 게시글을 수정합니다.")
     @PatchMapping("/{postId}")
+    @Operation(summary = "게시글 수정 API")
     public ResponseEntity<ApiResponseDto<IdData>> update(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId,
             @Valid @RequestBody PostUpdateRequest req
     ) {
-        Long updatedId = postService.update(authorization, postId, req);
+        Long updatedId = postService.update(postId, req);
         return responseFactory.ok(new IdData(updatedId));
     }
 
     /** 게시글 삭제 */
-    @Operation(summary = "게시글 삭제 API", description = "게시글을 삭제합니다.")
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponseDto<Void>> delete(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId
     ) {
-        postService.delete(authorization, postId);
+        postService.delete(postId);
         return responseFactory.noContent();
     }
 
     /** 게시글 목록 조회 */
-    @Operation(summary = "게시글 목록 조회 API", description = "전체 게시글 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponseDto<PostListResponse>> getPosts(
             @RequestParam(defaultValue = "1") Integer page,
@@ -70,17 +65,14 @@ public class PostController {
         return responseFactory.ok(response);
     }
 
-    /** 게시글 단건 조회 */
-    @Operation(summary = "게시글 단건 조회 API", description = "게시글 ID로 상세 조회합니다.")
+    /** 게시글 상세 조회 */
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponseDto<PostDetailResponse>> getPostById(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId
     ) {
-        PostDetailResponse response = postService.getPostById(postId, authorization);
+        PostDetailResponse response = postService.getPostById(postId);
         return responseFactory.ok(response);
     }
 
-    /** 내부용 record DTO */
-    record IdData(Long comment_id) { }
+    record IdData(Long post_id) {}
 }

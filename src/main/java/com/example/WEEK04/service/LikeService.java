@@ -1,40 +1,48 @@
 package com.example.WEEK04.service;
 
-import com.example.WEEK04.exception.*;
-import com.example.WEEK04.model.dto.response.*;
-import com.example.WEEK04.model.entity.*;
-import com.example.WEEK04.repository.*;
+import com.example.WEEK04.exception.BusinessException;
+import com.example.WEEK04.exception.ErrorCode;
+import com.example.WEEK04.model.dto.response.LikeActionResponse;
+import com.example.WEEK04.model.dto.response.LikeCountResponse;
+import com.example.WEEK04.model.entity.Like;
+import com.example.WEEK04.model.entity.Post;
+import com.example.WEEK04.model.entity.User;
+import com.example.WEEK04.repository.LikeRepository;
+import com.example.WEEK04.repository.PostRepository;
+import com.example.WEEK04.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class LikeService {
 
     private final LikeRepository likeRepo;
     private final PostRepository postRepo;
     private final UserRepository userRepo;
-    private final AuthService authService;
 
-    public LikeService(LikeRepository likeRepo, PostRepository postRepo,
-                       UserRepository userRepo, AuthService authService) {
-        this.likeRepo = likeRepo;
-        this.postRepo = postRepo;
-        this.userRepo = userRepo;
-        this.authService = authService;
+    /** 현재 로그인 사용자 */
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     /** 좋아요 추가 */
-    public LikeActionResponse like(String authorization, Long postId) {
-        Long userId = authService.extractUserId(authorization);
+    public LikeActionResponse like(Long postId) {
+        User user = getCurrentUser();
 
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FORBIDDEN));
 
-        if (likeRepo.existsByPostIdAndUserId(postId, userId))
+        if (likeRepo.existsByPostIdAndUserId(postId, user.getId())) {
             throw new BusinessException(ErrorCode.LIKE_ALREADY_EXISTS);
+        }
 
         Like like = new Like(post, user);
         post.addLike(like);
@@ -46,14 +54,13 @@ public class LikeService {
     }
 
     /** 좋아요 취소 */
-    public LikeActionResponse unlike(String authorization, Long postId) {
-        Long userId = authService.extractUserId(authorization);
+    public LikeActionResponse unlike(Long postId) {
+        User user = getCurrentUser();
 
-        Like like = likeRepo.findByPostIdAndUserId(postId, userId)
+        Like like = likeRepo.findByPostIdAndUserId(postId, user.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.LIKE_NOT_FOUND));
 
         Post post = like.getPost();
-        User user = like.getUser();
 
         post.removeLike(like);
         user.removeLike(like);
@@ -64,7 +71,7 @@ public class LikeService {
     }
 
     /** 좋아요 개수 조회 */
-    @Transactional(readOnly = true)
+    @Transactional
     public LikeCountResponse getLikeCount(Long postId) {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));

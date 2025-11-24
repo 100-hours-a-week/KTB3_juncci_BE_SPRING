@@ -11,34 +11,35 @@ import com.example.WEEK04.model.entity.User;
 import com.example.WEEK04.repository.LikeRepository;
 import com.example.WEEK04.repository.PostRepository;
 import com.example.WEEK04.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepo;
     private final UserRepository userRepo;
     private final LikeRepository likeRepo;
-    private final AuthService authService;
 
-    public PostService(PostRepository postRepo, UserRepository userRepo,
-                       LikeRepository likeRepo, AuthService authService) {
-        this.postRepo = postRepo;
-        this.userRepo = userRepo;
-        this.likeRepo = likeRepo;
-        this.authService = authService;
+    /** 현재 로그인 유저 */
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     /** 게시글 작성 */
-    public Long create(String authorization, PostCreateRequest req) {
-        Long userId = authService.extractUserId(authorization);
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    public Long create(PostCreateRequest req) {
+        User user = getCurrentUser();
 
         String imageString = (req.getImages() != null && !req.getImages().isEmpty())
                 ? String.join(",", req.getImages())
@@ -50,34 +51,44 @@ public class PostService {
         return postRepo.save(post).getId();
     }
 
-    /** 게시글 수정 추가 */
-    /** 게시글 수정 추가 */
-    public Long update(String authorization, Long postId, PostUpdateRequest req) {
-        Long userId = authService.extractUserId(authorization);
+    /** 게시글 수정 */
+    public Long update(Long postId, PostUpdateRequest req) {
+        User user = getCurrentUser();
 
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        // 권한 확인
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
         }
 
-        String imageString = (req.getImages() != null && !req.getImages().isEmpty())
+        String images = (req.getImages() != null && !req.getImages().isEmpty())
                 ? String.join(",", req.getImages())
                 : "";
 
-        // 필드 업데이트
         post.updateTitle(req.getTitle());
         post.updateContent(req.getContent());
-        post.updateImages(imageString);
+        post.updateImages(images);
 
         return post.getId();
     }
 
+    /** 게시글 삭제 */
+    public void delete(Long postId) {
+        User user = getCurrentUser();
 
-    /** 게시글 목록 조회 (작성자 포함) */
-    @Transactional(readOnly = true)
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
+        }
+
+        postRepo.delete(post);
+    }
+
+    /** 게시글 리스트 조회 */
+    @Transactional
     public PostListResponse getPosts(Integer page, Integer size, String sort) {
         Sort s = "asc".equalsIgnoreCase(sort)
                 ? Sort.by("id").ascending()
@@ -103,17 +114,15 @@ public class PostService {
 
     /** 게시글 상세 조회 */
     @Transactional
-    public PostDetailResponse getPostById(Long id, String authorization) {
+    public PostDetailResponse getPostById(Long id) {
 
-        Long userId = null;
+        User user = null;
         boolean isLiked = false;
 
-        if (authorization != null && authorization.startsWith("Bearer ACCESS-TOKEN-")) {
-            try {
-                userId = authService.extractUserId(authorization);
-                isLiked = likeRepo.existsByPostIdAndUserId(id, userId);
-            } catch (Exception ignored) {}
-        }
+        try {
+            user = getCurrentUser();
+            isLiked = likeRepo.existsByPostIdAndUserId(id, user.getId());
+        } catch (Exception ignored) {}
 
         Post post = postRepo.findPostWithDetails(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -126,20 +135,5 @@ public class PostService {
                 new PostDetailResponse.Data(post, likeCount, post.getViewCount(), isLiked),
                 null
         );
-    }
-
-
-    /** 게시글 삭제 추가 */
-    public void delete(String authorization, Long postId) {
-        Long userId = authService.extractUserId(authorization);
-
-        Post post = postRepo.findById(postId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
-        if (!post.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
-        }
-
-        postRepo.delete(post);
     }
 }

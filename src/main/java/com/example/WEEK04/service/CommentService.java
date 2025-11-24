@@ -10,35 +10,34 @@ import com.example.WEEK04.model.entity.User;
 import com.example.WEEK04.repository.CommentRepository;
 import com.example.WEEK04.repository.PostRepository;
 import com.example.WEEK04.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CommentService {
 
     private final CommentRepository commentRepo;
     private final PostRepository postRepo;
     private final UserRepository userRepo;
-    private final AuthService authService;
 
-    public CommentService(CommentRepository commentRepo,
-                          PostRepository postRepo,
-                          UserRepository userRepo,
-                          AuthService authService) {
-        this.commentRepo = commentRepo;
-        this.postRepo = postRepo;
-        this.userRepo = userRepo;
-        this.authService = authService;
+    /** 현재 로그인한 사용자 조회 */
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     /** 댓글 작성 */
-    public CommentResponse create(String authorization, Long postId, String content) {
-        Long userId = authService.extractUserId(authorization);
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    public CommentResponse create(Long postId, String content) {
+        User user = getCurrentUser();
 
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -52,8 +51,9 @@ public class CommentService {
     }
 
     /** 댓글 삭제 */
-    public void delete(String authorization, Long postId, Long commentId) {
-        Long userId = authService.extractUserId(authorization);
+    public void delete(Long postId, Long commentId) {
+        User user = getCurrentUser();
+
         Comment comment = commentRepo.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -61,7 +61,7 @@ public class CommentService {
             throw new BusinessException(ErrorCode.COMMENT_NOT_FOUND);
         }
 
-        if (!comment.getAuthor().getId().equals(userId)) {
+        if (!comment.getAuthor().getId().equals(user.getId())) {
             throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
         }
 
@@ -71,19 +71,18 @@ public class CommentService {
     }
 
     /** 댓글 목록 조회 */
-    @Transactional(readOnly = true)
+    @Transactional
     public CommentListResponse getCommentsByPostId(Long postId) {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         List<Comment> comments = commentRepo.findByPost(post);
 
-        // 기존에는 (message, id, list) 로 만들었는데 → List<Comment> 만 넘기면 됨
         return new CommentListResponse(comments);
     }
 
     /** 댓글 단건 조회 */
-    @Transactional(readOnly = true)
+    @Transactional
     public CommentResponse getCommentById(Long postId, Long commentId) {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));

@@ -24,39 +24,37 @@ public class CommentController {
     }
 
     /** 댓글 작성 API */
-    @Operation(summary = "댓글 작성 API", description = "특정 게시글에 댓글을 작성합니다.")
+    @Operation(summary = "댓글 작성 API")
     @PostMapping
     public ResponseEntity<ApiResponseDto<IdData>> createComment(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId,
             @Valid @RequestBody CommentCreateRequest req
     ) {
-        CommentResponse comment = commentService.create(authorization, postId, req.getContent());
+        CommentResponse comment = commentService.create(postId, req.getContent());
         return responseFactory.created(new IdData(comment.getId()));
     }
 
     /** 댓글 삭제 API */
-    @Operation(summary = "댓글 삭제 API", description = "특정 게시글의 댓글을 삭제합니다.")
+    @Operation(summary = "댓글 삭제 API")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<ApiResponseDto<Void>> deleteComment(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable Long postId,
             @PathVariable Long commentId
     ) {
-        commentService.delete(authorization, postId, commentId);
+        commentService.delete(postId, commentId);
         return responseFactory.noContent();
     }
 
     /** 댓글 목록 조회 API */
-    @Operation(summary = "댓글 목록 조회 API", description = "게시글 ID로 모든 댓글 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponseDto<CommentListResponse>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<ApiResponseDto<CommentListResponse>> getComments(
+            @PathVariable Long postId
+    ) {
         CommentListResponse response = commentService.getCommentsByPostId(postId);
         return responseFactory.ok(response);
     }
 
     /** 댓글 단건 조회 API */
-    @Operation(summary = "댓글 단건 조회 API", description = "댓글 ID로 특정 댓글의 상세 정보를 조회합니다.")
     @GetMapping("/{commentId}")
     public ResponseEntity<ApiResponseDto<CommentResponse>> getComment(
             @PathVariable Long postId,
@@ -66,6 +64,6 @@ public class CommentController {
         return responseFactory.ok(comment);
     }
 
-    /** 내부용 레코드 DTO */
-    record IdData(Long comment_id) { }
+    /** 내부용 DTO */
+    record IdData(Long comment_id) {}
 }

@@ -7,18 +7,27 @@ import com.example.WEEK04.model.dto.response.UserResponse;
 import com.example.WEEK04.model.entity.User;
 import com.example.WEEK04.model.enums.UserStatus;
 import com.example.WEEK04.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.security.core.Authentication;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository repo;
-
-    public UserService(UserRepository repo) {
-        this.repo = repo;
-    }
+    private final AuthenticationManager authManager;
+    private final PasswordEncoder passwordEncoder;
 
     /** 회원가입 */
     public UserResponse signup(SignupRequest req) {
@@ -28,7 +37,7 @@ public class UserService {
 
         User user = new User(
                 req.getEmail(),
-                req.getPassword(),
+                passwordEncoder.encode(req.getPassword()),  // 비밀번호 암호화
                 req.getNickname(),
                 req.getProfile_image()
         );
@@ -37,30 +46,46 @@ public class UserService {
         return new UserResponse(savedUser);
     }
 
-    /** 로그인 */
-    public UserResponse login(LoginRequest req) {
-        User user = repo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAIL));
+    /** 로그인 → 세션 생성됨 (토큰 아님) */
+    public void login(LoginRequest req) {
 
-        if (!user.getPassword().equals(req.getPassword())) {
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword());
+
+        Authentication auth;
+
+        try {
+            auth = authManager.authenticate(token);
+        } catch (Exception e) {
             throw new BusinessException(ErrorCode.LOGIN_FAIL);
         }
 
-        if (user.getStatus() == UserStatus.WITHDRAWN) {
-            throw new BusinessException(ErrorCode.USER_WITHDRAWN);
+        // 인증 정보 저장
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // ★★ 세션 생성 (절대 빠지면 안 됨) ★★
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (attributes == null) {
+            throw new IllegalStateException("RequestContextHolder is null. " +
+                    "login()은 반드시 HTTP 요청 안에서 호출되어야 합니다.");
         }
 
-        return new UserResponse(user);
+        HttpServletRequest request = attributes.getRequest();
+        request.getSession(true); // 세션 생성 (JSESSIONID 발급)
     }
 
+
+
     /** 이메일 중복 확인 */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean isEmailAvailable(String email) {
         return repo.findByEmail(email).isEmpty();
     }
 
     /** 회원 정보 조회 */
-    @Transactional(readOnly = true)
+    @Transactional
     public UserResponse getUserInfo(Long id) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -68,28 +93,20 @@ public class UserService {
         return new UserResponse(user);
     }
 
-    /** 회원 정보 수정 (닉네임, 프로필 이미지) */
+    /** 회원 정보 수정 */
     public UserResponse updateUser(Long id, UserUpdateRequest req) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        boolean changed = false;
-
         if (req.getNickname() != null && !req.getNickname().isBlank()) {
             user.setNickname(req.getNickname());
-            changed = true;
         }
 
         if (req.getProfileImage() != null && !req.getProfileImage().isBlank()) {
             user.setProfileImage(req.getProfileImage());
-            changed = true;
         }
 
-        if (changed) {
-            user.setStatus(UserStatus.ACTIVE);
-            repo.save(user);
-        }
-
+        repo.save(user);
         return new UserResponse(user);
     }
 
@@ -107,11 +124,11 @@ public class UserService {
         User user = repo.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (!user.getPassword().equals(req.getCurrentPassword())) {
+        if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.PASSWORD_INVALID);
         }
 
-        user.setPassword(req.getNewPassword());
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         repo.save(user);
     }
 }
