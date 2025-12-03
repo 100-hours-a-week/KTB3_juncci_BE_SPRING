@@ -7,18 +7,12 @@ import com.example.WEEK04.model.dto.response.UserResponse;
 import com.example.WEEK04.model.entity.User;
 import com.example.WEEK04.model.enums.UserStatus;
 import com.example.WEEK04.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -26,7 +20,6 @@ import org.springframework.security.core.Authentication;
 public class UserService {
 
     private final UserRepository repo;
-    private final AuthenticationManager authManager;
     private final PasswordEncoder passwordEncoder;
 
     /** 회원가입 */
@@ -35,9 +28,11 @@ public class UserService {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATE);
         }
 
+        String encodedPassword = passwordEncoder.encode(req.getPassword());
+
         User user = new User(
                 req.getEmail(),
-                passwordEncoder.encode(req.getPassword()),  // 비밀번호 암호화
+                encodedPassword,
                 req.getNickname(),
                 req.getProfile_image()
         );
@@ -46,82 +41,67 @@ public class UserService {
         return new UserResponse(savedUser);
     }
 
-    /** 로그인 → 세션 생성됨 (토큰 아님) */
-    public void login(LoginRequest req) {
-
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword());
-
-        Authentication auth;
-
-        try {
-            auth = authManager.authenticate(token);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.LOGIN_FAIL);
-        }
-
-        // 인증 정보 저장
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        // ★★ 세션 생성 (절대 빠지면 안 됨) ★★
-        ServletRequestAttributes attributes =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-
-        if (attributes == null) {
-            throw new IllegalStateException("RequestContextHolder is null. " +
-                    "login()은 반드시 HTTP 요청 안에서 호출되어야 합니다.");
-        }
-
-        HttpServletRequest request = attributes.getRequest();
-        request.getSession(true); // 세션 생성 (JSESSIONID 발급)
-    }
-
-
-
     /** 이메일 중복 확인 */
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean isEmailAvailable(String email) {
         return repo.findByEmail(email).isEmpty();
     }
 
-    /** 회원 정보 조회 */
-    @Transactional
-    public UserResponse getUserInfo(Long id) {
-        User user = repo.findById(id)
+    /** 현재 로그인한 사용자 ID 가져오기 */
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || auth.getName() == null) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
+        try {
+            return Long.parseLong(auth.getName()); // TokenProvider에서 subject를 userId로 넣어둠
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+    }
+
+    /** 내 정보 조회 */
+    @Transactional(readOnly = true)
+    public UserResponse getMyInfo() {
+        Long userId = getCurrentUserId();
+
+        User user = repo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return new UserResponse(user);
     }
 
-    /** 회원 정보 수정 */
-    public UserResponse updateUser(Long id, UserUpdateRequest req) {
-        User user = repo.findById(id)
+    /** 내 정보 수정 */
+    public UserResponse updateMyInfo(UserUpdateRequest req) {
+        Long userId = getCurrentUserId();
+
+        User user = repo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        boolean changed = false;
 
         if (req.getNickname() != null && !req.getNickname().isBlank()) {
             user.setNickname(req.getNickname());
+            changed = true;
         }
 
         if (req.getProfileImage() != null && !req.getProfileImage().isBlank()) {
             user.setProfileImage(req.getProfileImage());
+            changed = true;
         }
 
-        repo.save(user);
+        if (changed) repo.save(user);
+
         return new UserResponse(user);
     }
 
-    /** 회원 탈퇴 */
-    public void withdraw(Long id) {
-        User user = repo.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    /** 내 비밀번호 변경 */
+    public void updatePassword(UserPasswordUpdateRequest req) {
+        Long userId = getCurrentUserId();
 
-        user.withdraw();
-        repo.save(user);
-    }
-
-    /** 비밀번호 변경 */
-    public void updatePassword(Long id, UserPasswordUpdateRequest req) {
-        User user = repo.findById(id)
+        User user = repo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
@@ -129,6 +109,17 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        repo.save(user);
+    }
+
+    /** 회원 탈퇴 */
+    public void withdrawMe() {
+        Long userId = getCurrentUserId();
+
+        User user = repo.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        user.withdraw(); // 상태 변경
         repo.save(user);
     }
 }

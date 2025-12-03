@@ -2,6 +2,7 @@ package com.example.WEEK04.service;
 
 import com.example.WEEK04.exception.BusinessException;
 import com.example.WEEK04.exception.ErrorCode;
+import com.example.WEEK04.model.dto.PostSummaryDto;
 import com.example.WEEK04.model.dto.request.PostCreateRequest;
 import com.example.WEEK04.model.dto.request.PostUpdateRequest;
 import com.example.WEEK04.model.dto.response.PostDetailResponse;
@@ -29,11 +30,22 @@ public class PostService {
     private final UserRepository userRepo;
     private final LikeRepository likeRepo;
 
-    /** 현재 로그인 유저 */
+    /** 현재 로그인 유저 반환 */
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        return userRepo.findByEmail(email)
+
+        if (auth == null || auth.getName() == null) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
+        Long userId;
+        try {
+            userId = Long.parseLong(auth.getName());
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
+        return userRepo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -87,27 +99,40 @@ public class PostService {
         postRepo.delete(post);
     }
 
-    /** 게시글 리스트 조회 */
+    /** 🔥 게시글 리스트 조회 (N+1 제거 + Projection) */
     @Transactional
     public PostListResponse getPosts(Integer page, Integer size, String sort) {
+
         Sort s = "asc".equalsIgnoreCase(sort)
                 ? Sort.by("id").ascending()
                 : Sort.by("id").descending();
 
         Pageable pageable = PageRequest.of(page - 1, size, s);
-        List<Post> posts = postRepo.findAllWithUser();
-        Page<Post> pageObj = new PageImpl<>(posts, pageable, posts.size());
+
+        // 🔥 Projection 기반 (단 한 번의 쿼리)
+        Page<PostSummaryDto> pageObj = postRepo.findPostSummaries(pageable);
 
         List<PostListResponse.PostSummary> summaries = pageObj.getContent().stream()
-                .map(p -> new PostListResponse.PostSummary(
-                        p,
-                        likeRepo.countByPostId(p.getId()),
-                        p.getViewCount()
-                )).toList();
+                .map(dto -> new PostListResponse.PostSummary(
+                        dto.postId(),
+                        dto.title(),
+                        dto.createdAt(),
+                        dto.commentCount(),
+                        dto.likeCount(),
+                        dto.viewCount(),
+                        dto.authorId(),
+                        dto.authorNickname()
+                ))
+                .toList();
 
         return new PostListResponse(
                 "ok",
-                new PostListResponse.Data(summaries, page, size, (int) pageObj.getTotalElements()),
+                new PostListResponse.Data(
+                        summaries,
+                        page,
+                        size,
+                        (int) pageObj.getTotalElements()
+                ),
                 null
         );
     }
@@ -133,6 +158,47 @@ public class PostService {
         return new PostDetailResponse(
                 "ok",
                 new PostDetailResponse.Data(post, likeCount, post.getViewCount(), isLiked),
+                null
+        );
+    }
+
+    /** 🔥 내가 작성한 글 목록 (Projection 버전) */
+    @Transactional
+    public PostListResponse getMyPosts(Integer page, Integer size, String sort) {
+
+        User currentUser = getCurrentUser();
+
+        Sort s = "asc".equalsIgnoreCase(sort)
+                ? Sort.by("id").ascending()
+                : Sort.by("id").descending();
+
+        Pageable pageable = PageRequest.of(page - 1, size, s);
+
+        // 🔥 동일 사용자만 조회하므로 Projection 재사용
+        Page<PostSummaryDto> pageObj =
+                postRepo.findPostSummariesByUserId(currentUser.getId(), pageable);
+
+        List<PostListResponse.PostSummary> summaries = pageObj.getContent().stream()
+                .map(dto -> new PostListResponse.PostSummary(
+                        dto.postId(),
+                        dto.title(),
+                        dto.createdAt(),
+                        dto.commentCount(),
+                        dto.likeCount(),
+                        dto.viewCount(),
+                        dto.authorId(),
+                        dto.authorNickname()
+                ))
+                .toList();
+
+        return new PostListResponse(
+                "ok",
+                new PostListResponse.Data(
+                        summaries,
+                        page,
+                        size,
+                        (int) pageObj.getTotalElements()
+                ),
                 null
         );
     }

@@ -25,11 +25,22 @@ public class LikeService {
     private final PostRepository postRepo;
     private final UserRepository userRepo;
 
-    /** 현재 로그인 사용자 */
+    /** 현재 로그인 사용자 (subject = userId) */
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        return userRepo.findByEmail(email)
+
+        if (auth == null || auth.getName() == null) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
+        Long userId;
+        try {
+            userId = Long.parseLong(auth.getName());
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
+
+        return userRepo.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 

@@ -6,6 +6,7 @@ import com.example.WEEK04.model.dto.request.PostCreateRequest;
 import com.example.WEEK04.model.dto.request.PostUpdateRequest;
 import com.example.WEEK04.model.dto.response.PostDetailResponse;
 import com.example.WEEK04.model.dto.response.PostListResponse;
+import com.example.WEEK04.security.SecurityUtil;
 import com.example.WEEK04.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -71,6 +72,19 @@ public class PostController {
             @PathVariable Long postId
     ) {
         PostDetailResponse response = postService.getPostById(postId);
+        return responseFactory.ok(response);
+    }
+
+    /** 내가 쓴 게시글 목록 조회 */
+    /** 내가 쓴 게시글 목록 조회 */
+    @GetMapping("/me")
+    @Operation(summary = "내가 작성한 게시글 목록 조회 API")
+    public ResponseEntity<ApiResponseDto<PostListResponse>> getMyPosts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "desc") String sort
+    ) {
+        PostListResponse response = postService.getMyPosts(page, size, sort);
         return responseFactory.ok(response);
     }
 

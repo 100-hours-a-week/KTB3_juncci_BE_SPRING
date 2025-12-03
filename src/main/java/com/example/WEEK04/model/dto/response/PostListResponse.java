@@ -1,6 +1,7 @@
 package com.example.WEEK04.model.dto.response;
 
 import com.example.WEEK04.model.entity.Post;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +28,7 @@ public record PostListResponse(String message, Data data, Object error) {
         public int getTotal() { return total; }
     }
 
+    @Getter
     public static class PostSummary {
         private final Long post_id;
         private final String title;
@@ -37,24 +39,27 @@ public record PostListResponse(String message, Data data, Object error) {
         private final Long author_id;
         private final String author_nickname;
 
-        public PostSummary(Post p, int likeCount, int viewCount) {
-            this.post_id = p.getId();
-            this.title = p.getTitle();
-            this.created_at = p.getCreatedAt();
-            this.comment_count = p.getCommentCount(); // 사용 안 하면 0 또는 제거 가능
-            this.like_count = likeCount;
-            this.view_count = viewCount;
-            this.author_id = p.getUser().getId();
-            this.author_nickname = p.getUser().getNickname();
+        public PostSummary(
+                Long post_id,
+                String title,
+                LocalDateTime created_at,
+                int comment_count,
+                int like_count,
+                int view_count,
+                Long author_id,
+                String author_nickname
+        ) {
+            this.post_id = post_id;
+            this.title = title;
+            this.created_at = created_at;
+            this.comment_count = comment_count;
+            this.like_count = like_count;
+            this.view_count = view_count;
+            this.author_id = author_id;
+            this.author_nickname = author_nickname;
         }
-
-        public Long getPost_id() { return post_id; }
-        public String getTitle() { return title; }
-        public LocalDateTime getCreated_at() { return created_at; }
-        public int getComment_count() { return comment_count; }
-        public int getLike_count() { return like_count; }
-        public int getView_count() { return view_count; }
-        public Long getAuthor_id() {return author_id;}
-        public String getAuthor_nickname() {return author_nickname;}
     }
+
+
+
 }
