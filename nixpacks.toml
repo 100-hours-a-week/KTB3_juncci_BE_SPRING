@@ -5,4 +5,4 @@ nixpkgs = ["jdk21", "gradle"]
 cmds = ["./gradlew clean build -x test"]
 
 [start]
-cmd = "java -jar $(ls build/libs/*.jar | head -n 1)"
+cmd = "java -jar $(find build/libs -name '*SNAPSHOT.jar' ! -name '*plain.jar' | head -n 1)"
