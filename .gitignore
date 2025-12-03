@@ -32,10 +32,7 @@ Thumbs.db
 logs/
 log/
 
-### Spring Boot ###
-application*.yml
-application*.yaml
-application*.properties
+
 
 # 임시 / 캐시 폴더
 target/
