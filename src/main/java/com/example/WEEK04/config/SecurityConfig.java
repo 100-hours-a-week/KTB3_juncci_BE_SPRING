@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -25,20 +26,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // CSRF 비활성화 (JWT + REST 환경)
                 .csrf(cs -> cs.disable())
-                .cors(cors -> {})
 
-                // ✅ JWT이기 때문에 세션을 사용하지 않음 (완전 stateless)
+                // ★★★ WebConfig의 CORS 설정을 사용하도록 Security에 적용
+                .cors(withDefaults())
+
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // ✅ URL 별 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login",      // 로그인 (토큰 발급)
-                                "/users",           // 회원가입
+                                "/auth/login",
+                                "/users",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
@@ -46,15 +46,14 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // 인증 실패 / 인가 실패 핸들러
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(deniedHandler)
                 )
 
-                // ✅ JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 넣기
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
