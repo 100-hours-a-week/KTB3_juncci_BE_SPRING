@@ -29,9 +29,10 @@ Spring Boot MVC 패턴을 기반으로 **5계층 아키텍처**로 구성되어 
 | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="4710" height="2062" alt="WEEK04" src="https://github.com/user-attachments/assets/e9230aeb-3a7e-4a2c-8db2-05ae5f94ccc9" /> | <img width="6549" height="1880" alt="WEEK05" src="https://github.com/user-attachments/assets/5ab57361-2c16-44ac-8736-c2850075deaf" /> |
 
-**WEEK 06** <img width="5936" height="1804" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-10-21-100902" src="https://github.com/user-attachments/assets/d6053fca-39d7-4c84-a413-08f98c153a3a" />
+| WEEK 06 | WEEK 07 |
+| ------- | -------- |
+| <img width="5936" height="1804" alt="WEEK06" src="https://github.com/user-attachments/assets/d6053fca-39d7-4c84-a413-08f98c153a3a" /> | <img width="4152" height="1522" alt="WEEK07" src="https://github.com/user-attachments/assets/f6abe3a0-c76e-4082-9530-2d8e93a56d3f" /> |
 
-**WEEK 07** <img width="4152" height="1522" alt="Mermaid Chart - Create complex, visual diagrams with text -2025-11-02-085719" src="https://github.com/user-attachments/assets/f6abe3a0-c76e-4082-9530-2d8e93a56d3f" />
 
 **최종**
 <img width="6791" height="3382" alt="image" src="https://github.com/user-attachments/assets/c642e3c0-fe32-452a-917d-e2313c6a3a98" />
