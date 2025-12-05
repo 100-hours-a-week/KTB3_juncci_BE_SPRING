@@ -30,8 +30,6 @@
 <p>
   <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Spring_Boot-3.5.6-6DB33F?logo=springboot&logoColor=white&style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Spring_Web-6DB33F?logo=spring&logoColor=white&style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Spring_Validation-6DB33F?logo=spring&logoColor=white&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Spring_Data_JPA-59666C?logo=spring&logoColor=white&style=for-the-badge" />
   <img src="https://img.shields.io/badge/Spring_Security-6DB33F?logo=springsecurity&logoColor=white&style=for-the-badge" />
   <img src="https://img.shields.io/badge/JWT-0.11.5-000000?logo=jsonwebtokens&logoColor=white&style=for-the-badge" />
@@ -83,11 +81,11 @@
 
 ## 1️⃣ Controller Layer
 
-**✔ 역할**
+**역할**
 클라이언트 요청을 처리하고, Service 호출 후 `ResponseFactory`를 사용해
 표준 응답(`ApiResponseDto`)을 반환합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `UserController`
 * `PostController`
@@ -98,12 +96,12 @@
 
 ## 2️⃣ Service Layer
 
-**✔ 역할**
+**역할**
 비즈니스 로직을 수행하는 핵심 계층으로,
 데이터 처리·검증·트랜잭션 관리 등을 담당합니다.
 `AuthService`는 Authorization 헤더 기반 JWT 사용자 식별 기능을 제공합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `UserService`
 * `PostService`
@@ -115,11 +113,11 @@
 
 ## 3️⃣ Repository Layer
 
-**✔ 역할**
+**역할**
 데이터베이스에 접근하여 CRUD 및 조회 기능을 제공합니다.
 Spring Data JPA 기반으로 구현되어 SQL 작성 없이 DB 조작이 가능합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `UserRepository`
 * `PostRepository`
@@ -132,10 +130,10 @@ Spring Data JPA 기반으로 구현되어 SQL 작성 없이 DB 조작이 가능�
 
 ### Entity Layer
 
-**✔ 역할**
+**역할**
 DB 테이블과 매핑되는 도메인 객체를 정의합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `User`
 * `Post`
@@ -144,10 +142,10 @@ DB 테이블과 매핑되는 도메인 객체를 정의합니다.
 
 ### Enum Layer
 
-**✔ 역할**
+**역할**
 도메인 상태 값 정의.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `UserStatus`
 
@@ -159,7 +157,7 @@ DB 테이블과 매핑되는 도메인 객체를 정의합니다.
 
 클라이언트에서 전달되는 입력 데이터 구조를 담당합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `SignupRequest`, `LoginRequest`
 * `PostCreateRequest`, `PostUpdateRequest`
@@ -170,7 +168,7 @@ DB 테이블과 매핑되는 도메인 객체를 정의합니다.
 
 API 응답 데이터 모델을 정의합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `UserResponse`, `SignupResponse`
 * `PostListResponse`, `PostDetailResponse`
@@ -182,10 +180,10 @@ API 응답 데이터 모델을 정의합니다.
 
 ## 6️⃣ Security Layer
 
-**✔ 역할**
+**역할**
 JWT 기반 인증/인가 처리를 담당하며 Spring Security와 연동됩니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `JwtAuthenticationFilter` — JWT 토큰 검증 필터
 * `TokenProvider` — JWT 생성·검증
@@ -198,10 +196,10 @@ JWT 기반 인증/인가 처리를 담당하며 Spring Security와 연동됩니�
 
 ## 7️⃣ Config Layer
 
-**✔ 역할**
+**역할**
 애플리케이션 동작 환경 및 공통 설정을 구성합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `SecurityConfig` — Spring Security 설정
 * `PasswordConfig` — PasswordEncoder 설정
@@ -212,10 +210,10 @@ JWT 기반 인증/인가 처리를 담당하며 Spring Security와 연동됩니�
 
 ## 8️⃣ Exception Layer
 
-**✔ 역할**
+**역할**
 비즈니스/시스템 예외를 통합적으로 처리하여 일관된 응답 구조를 제공합니다.
 
-**✔ 주요 클래스**
+**주요 클래스**
 
 * `BusinessException`
 * `ErrorCode`
@@ -269,5 +267,9 @@ src/main/java/com/example/WEEK04
 ```
 
 ---
+
+## DEMO
+[**데모 영상**](https://drive.google.com/file/d/1L8jttP-oKUZevLYHuY39iKybAFHjM8CY/view?usp=sharing)
+
 
  (업데이트: 2025.12.05)
