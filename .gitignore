@@ -53,3 +53,9 @@ test-output/
 WEEK01/
 WEEK02/
 HELP.md
+
+
+# Application secrets
+application.yml
+*.yaml
+*.yml
