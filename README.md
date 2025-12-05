@@ -1,7 +1,4 @@
-# KTB3_juncci_BE_SPRING 
-
-
-## 프로젝트 소개 — logoRism
+# logoRism - BE
 <table>
   <tr>
     <td width="180">
