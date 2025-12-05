@@ -1,4 +1,4 @@
-# KTB3_juncci_BE_SPRING (JPA 적용 버전)
+# KTB3_juncci_BE_SPRING 
 
 과제 프로젝트로,
 **회원가입 / 로그인 / 게시판 / 댓글 / 좋아요** 기능을 중심으로 한 RESTful API 서버입니다.
