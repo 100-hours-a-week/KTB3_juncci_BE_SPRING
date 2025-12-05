@@ -35,12 +35,12 @@
   <img src="https://img.shields.io/badge/JWT-0.11.5-000000?logo=jsonwebtokens&logoColor=white&style=for-the-badge" />
 </p>
 
-### 🗄 Database
+### Database
 <p>
   <img src="https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white&style=for-the-badge" />
 </p>
 
-### 📘 API Documentation
+### API Documentation
 <p>
   <img src="https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black&style=for-the-badge" />
 </p>
